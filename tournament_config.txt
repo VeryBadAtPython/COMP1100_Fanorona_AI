@@ -1,0 +1,3 @@
+Play on server:no
+Play publicly:no
+Play 1130 rules:no
