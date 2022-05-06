@@ -10,7 +10,7 @@ how is best to play.
 This assignment is worth 15% of your final grade.
 
 {:.msg-warn}  
-**Deadline**: Sunday TODO, 2022, at 11:00pm Canberra time _sharp_
+**Deadline**: Sunday 29 May, 2022, at 11:00pm Canberra time _sharp_
 
 ## Overview of Tasks
 
