@@ -22,7 +22,8 @@ data AIFunc
 -- his or her attention to marking.
 
 ais :: [(String, AIFunc)]
-ais = [("default", NoLookahead (firstCaptureMove COMP1100)),
+ais = [("default", NoLookahead (greedy COMP1100)),
+      ("contented", NoLookahead (firstCaptureMove COMP1100)),
       ("provided", NoLookahead (firstLegalMove COMP1100))
       ]
 
@@ -81,23 +82,69 @@ firstCaptureMove course state = case applyMove course Pass state of
 myC :: Course
 myC = COMP1100
 
--- Count the opponent's number of pieces state resulting from a move
--- Inputs a Maybe state and the opposing player
-oppPieces :: Maybe GameState -> Player -> Maybe Int
-oppPieces state player = case state of
+-- Count the how many more pieces Player1 has then Player2
+-- Inputs a Maybe state and returns a maybe int
+diffPieces :: Maybe GameState -> Maybe Int
+diffPieces state = case state of
   Just c -> case (countPieces c) of
-    (p1,p2) -> if (player == Player1) then Just p1 else Just p2
-    _       -> Nothing
+    (p1,p2) ->  Just (p1 - p2)
   _      -> Nothing
 
+-- Need a function that maps diffPieces to a pair with the states
+pairPieces :: [Move] -> GameState -> [(Move,Maybe Int)]
+pairPieces moves state = map pairing moves
+  where pairing = ( \x -> ( x, (diffPieces (applyMove myC x state)) ) )
+
+-- Function that returns the best move and its resulting best...
+-- ...score as a maybe type
+-- If AI is Player1 use evaluator (\x y -> x>=y)
+-- If AI is Player2 use evaluator (\x y -> x<=y)
+greedyHelp :: (Int -> Int -> Bool) -> [(Move,Maybe Int)] ->
+   (Move,Maybe Int) -> (Move,Maybe Int)
+greedyHelp evaluator moves acc = case (moves,acc) of
+  ((a,b):xs, (_,d)) -> case (b,d) of
+    (Just x, Just y)
+      | evaluator x y -> greedyHelp evaluator xs (a,b)
+      | otherwise     -> greedyHelp evaluator xs acc
+    (Just _, Nothing) -> greedyHelp evaluator xs (a,b)
+    _                 -> greedyHelp evaluator xs acc
+  _                 -> acc
 
 
+-- The final greedy heuristic
+greedy :: Course -> GameState -> Move
+greedy course state = case state of
+  State (Turn Player1) _ _ _ _ ->
+    case greedyHelp (\x y -> x<y) pairs initAcc of
+      (k,_) -> k
+  State (Turn Player2) _ _ _ _ ->
+    case greedyHelp (\x y -> x>y) pairs initAcc of
+      (k,_) -> k
+  State (GameOver _) _ _ _ _ -> error "Game Over"
+  where pairs   = (pairPieces (legalMoves state) state)
+        initAcc = (\m n -> (m,n))
+          (head (legalMoves state)) 
+          (diffPieces (applyMove course (head (legalMoves state)) state))
 
-  -- | ================ Turn Checker ================ | --
--- | A function that decides what to do based pon who's turn it is:
+
+-- | ==================================================== | --
+-- | ================ Minimax            ================ | --
+-- | ==================================================== | --
 {-
-whosTurn :: GameState -> Player
-whosTurn (State turn _ _ _ _) = case turn of
-  Player 1 -> undefined
-  Player 2 -> undefined
+Needs to go down tree until case depth = n-1
+make the leaf nodes Leaf (result state) (move to get there) (heuristic value)
+Find where its maxed of minned
 -}
+
+
+{-
+Tree designed to store the initial move that led to the terminus leaf
+The nodes along the way 
+-}
+type Depth  = Int
+type Val  = Maybe Int
+type Choice = Move
+
+data DepthTree = Node GameState Move Depth [DepthTree]
+                 
+
