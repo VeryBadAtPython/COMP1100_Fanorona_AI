@@ -1,3 +1,3 @@
-Play on server:no
+Play on server:yes
 Play publicly:no
 Play 1130 rules:no
