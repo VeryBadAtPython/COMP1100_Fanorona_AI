@@ -141,10 +141,64 @@ Find where its maxed of minned
 Tree designed to store the initial move that led to the terminus leaf
 The nodes along the way 
 -}
-type Depth  = Int
-type Val  = Maybe Int
-type Choice = Move
-
-data DepthTree = Node GameState Move Depth [DepthTree]
+type Depth  = Int   -- Enhances readability keeps track of depth
+type Val    = Int   -- The heuristic value from heuristicVal
+type Choice = Move  -- To keep track of the move choice at depth==1
                  
+data GameTree = GTree GameState [GameTree]
+                
+data EvalTree = Node GameState Val [EvalTree]
+
+
+{-
+Tree designed to store the initial move that led to the terminus leaf
+The nodes along the way 
+-}
+gameTree :: GameState -> GameTree
+gameTree state = GTree state (map gameTree children)
+  where
+    children    = purge maybeStates
+    maybeStates = map (\x -> applyMove myC x state) moves
+    moves       = legalMoves state
+
+-- purge removes Nothings values from the mapping of applyMove
+purge :: [Maybe GameState] -> [GameState]
+purge list = case list of
+  [] -> []
+  x:xs -> case x of
+    (Just y) -> y:(purge xs)
+    _        -> purge xs
+
+-- Cuts the tree at off at an integer depth adding in leaf nodes
+pruneDepth :: Depth -> GameTree -> GameTree
+pruneDepth 0 (GTree x _)         = GTree x []
+pruneDepth _ (GTree x [])        = GTree x []
+pruneDepth n (GTree x children)  = GTree x (map (pruneDepth (n-1)) children)
+
+-- Cuts the tree at off at an integer depth adding in leaf nodes
+-- then (not) propagating values up
+pruneMinMax :: Depth -> GameTree -> EvalTree
+pruneMinMax 0 (GTree x _)      = Node x (heuristicVal x) []
+pruneMinMax n (GTree x kinder) = case x of
+   State (Turn Player1) _ _ _ _ -> Node x max children
+   State (Turn Player2) _ _ _ _ -> Node x min children
+   State (GameOver _) _ _ _ _   -> Node x (heuristicVal x) []
+  where
+    children  = (map (pruneMinMax (n-1)) kinder)
+    max       = maximum kidValues
+    min       = minimum kidValues
+    kidValues = map getVal children
+
+getVal :: EvalTree -> Val
+getVal (Node _ val _) = val
+
+
+heuristicVal :: GameState -> Val
+heuristicVal state = subtract (countPieces state)
+  where
+    subtract (p1,p2) = p1-p2
+
+-- | ==================================================== | --
+-- | =============== Minimax w/ alpha beta ============== | --
+-- | ==================================================== | --
 
