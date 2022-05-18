@@ -28,6 +28,11 @@ ais = [("default", WithLookahead (miniMaxOne COMP1100)),
       ("provided", NoLookahead (firstLegalMove COMP1100))
       ]
 
+
+
+-- | ==================================================== | --
+-- | ================ First legal move   ================ | --
+-- | ==================================================== | --
 -- | A very simple AI, which passes whenever it can, and if not,
 -- picks the first move returned by the 'legalMoves' function.
 -- By default, this function is called on COMP1100 rules, and so
@@ -158,7 +163,8 @@ The nodes along the way
 
 miniMaxOne :: Course -> GameState -> Int -> Move
 miniMaxOne COMP1100 state depth = getMove (pruneMinMax depth (gameTree state))
-miniMaxOne COMP1130 _ _         = error "I'm not in 1130"
+miniMaxOne COMP1130 _ _         = error "Not in COMP1130"
+
 
 getMove :: EvalTree -> Move
 getMove (Node state val children) = nthElem 
@@ -200,11 +206,11 @@ pruneDepth n (GTree x children)  = GTree x (map (pruneDepth (n-1)) children)
 -- Cuts the tree at off at an integer depth adding in leaf nodes
 -- then (not) propagating values up
 pruneMinMax :: Depth -> GameTree -> EvalTree
-pruneMinMax 0 (GTree x _)      = Node x (heuristicVal x) []
+pruneMinMax 0 (GTree x _)      = Node x (heuristicRef x) []
 pruneMinMax n (GTree x kinder) = case x of
    State (Turn Player1) _ _ _ _ -> Node x maxi children
    State (Turn Player2) _ _ _ _ -> Node x mini children
-   State (GameOver _) _ _ _ _   -> Node x (heuristicVal x) []
+   State (GameOver _) _ _ _ _   -> Node x (heuristicRef x) []
   where
     children  = (map (pruneMinMax (n-1)) kinder)
     maxi       = maximum kidValues
@@ -218,6 +224,15 @@ getVal (Node _ val _) = val
 heuristicVal :: GameState -> Val
 heuristicVal state = subtracti (countPieces state)
   where
+    subtracti (p1,p2) = p1-p2
+
+heuristicRefined :: GameState -> Val
+heuristicRefined state = case count of
+  (0,_) -> -1000
+  (_,0) -> 1000
+  _     -> subtracti count
+  where
+    count             = countPieces state
     subtracti (p1,p2) = p1-p2
 
 -- | ==================================================== | --
