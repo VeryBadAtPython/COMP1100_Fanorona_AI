@@ -197,20 +197,16 @@ purge list = case list of
     (Just y) -> y:(purge xs)
     _        -> purge xs
 
--- Cuts the tree at off at an integer depth adding in leaf nodes
-pruneDepth :: Depth -> GameTree -> GameTree
-pruneDepth 0 (GTree x _)         = GTree x []
-pruneDepth _ (GTree x [])        = GTree x []
-pruneDepth n (GTree x children)  = GTree x (map (pruneDepth (n-1)) children)
+
 
 -- Cuts the tree at off at an integer depth adding in leaf nodes
 -- then (not) propagating values up
 pruneMinMax :: Depth -> GameTree -> EvalTree
-pruneMinMax 0 (GTree x _)      = Node x (heuristicRef x) []
+pruneMinMax 0 (GTree x _)      = Node x (heuristicRefined x) []
 pruneMinMax n (GTree x kinder) = case x of
    State (Turn Player1) _ _ _ _ -> Node x maxi children
    State (Turn Player2) _ _ _ _ -> Node x mini children
-   State (GameOver _) _ _ _ _   -> Node x (heuristicRef x) []
+   State (GameOver _) _ _ _ _   -> Node x (heuristicRefined x) []
   where
     children  = (map (pruneMinMax (n-1)) kinder)
     maxi       = maximum kidValues
@@ -219,6 +215,7 @@ pruneMinMax n (GTree x kinder) = case x of
 
 getVal :: EvalTree -> Val
 getVal (Node _ val _) = val
+
 
 
 heuristicVal :: GameState -> Val
@@ -235,7 +232,81 @@ heuristicRefined state = case count of
     count             = countPieces state
     subtracti (p1,p2) = p1-p2
 
+
 -- | ==================================================== | --
 -- | =============== Minimax w/ alpha beta ============== | --
 -- | ==================================================== | --
 
+type Alpha = Int
+type Beta  = Int
+
+-- A polymorphic tree structure
+data NodeValTree e v = ValNode v [(e,NodeValTree e v)]
+
+-- Tree with values only in leaves which keeps track of 
+-- the moves as well as 
+type FanGameTree = NodeValTree Move GameState
+
+-- The minimax tree
+data MMABTree = MMAB [(Move, MMABTree)]
+                | Terminus Val
+
+
+-- |// Compute full tree \\| --
+fanGameTree :: GameState -> FanGameTree
+fanGameTree state = case (turnFinder state) of
+  GameOver _ -> ValNode state []
+  Turn _     -> ValNode state succ
+    where
+      succ   = map (fmap fanGameTree) states
+      states = moveToState (legalMoves state) state
+
+-- helper that just grabs the turn from a state for the case statement
+turnFinder :: GameState -> Turn
+turnFinder (State t _ _ _ _) = t
+
+-- recurses through a list of legalMoves and...
+-- ...then pairs it with the resulting gamestate
+moveToState :: [Move] -> GameState -> [(Move,GameState)]
+moveToState [] _       = []
+moveToState (x:xs) state = case (applyMove myC x state) of
+  Just s  -> (x,s):(moveToState xs state)
+  Nothing -> moveToState xs state
+
+-- |// Compute A/B/MM tree \\| --
+
+
+
+
+
+
+
+-- | ==================================================== | --
+-- | =============== Code Scraps           ============== | --
+-- | ==================================================== | --
+
+
+data AlphaBetaTree = Pnt GameState Val Alpha Beta [AlphaBetaTree]
+
+
+pruneAB :: Depth -> GameTree -> AlphaBetaTree
+pruneAB 0 (GTree x _)      = Pnt x (heuristicRefined x) 0 0 []
+pruneAB n (GTree x kinder) = case x of
+   State (Turn Player1) _ _ _ _ -> Pnt x maxi 0 0 children
+   State (Turn Player2) _ _ _ _ -> Pnt x mini 0 0 children
+   State (GameOver _) _ _ _ _   -> Pnt x (heuristicRefined x) 0 0 []
+  where
+    children  = (map (pruneAB (n-1)) kinder)
+    maxi       = maximum kidValues
+    mini       = minimum kidValues
+    kidValues = map getABVal children
+
+getABVal :: AlphaBetaTree -> Val
+getABVal (Pnt _ val _ _ _) = val
+
+
+-- Cuts the tree at off at an integer depth adding in leaf nodes
+pruneDepth :: Depth -> GameTree -> GameTree
+pruneDepth 0 (GTree x _)         = GTree x []
+pruneDepth _ (GTree x [])        = GTree x []
+pruneDepth n (GTree x children)  = GTree x (map (pruneDepth (n-1)) children)
