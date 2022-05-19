@@ -202,11 +202,11 @@ purge list = case list of
 -- Cuts the tree at off at an integer depth adding in leaf nodes
 -- then (not) propagating values up
 pruneMinMax :: Depth -> GameTree -> EvalTree
-pruneMinMax 0 (GTree x _)      = Node x (heuristicRefined x) []
+pruneMinMax 0 (GTree x _)      = Node x (heuristicVal x) []
 pruneMinMax n (GTree x kinder) = case x of
    State (Turn Player1) _ _ _ _ -> Node x maxi children
    State (Turn Player2) _ _ _ _ -> Node x mini children
-   State (GameOver _) _ _ _ _   -> Node x (heuristicRefined x) []
+   State (GameOver _) _ _ _ _   -> Node x (heuristicVal x) []
   where
     children  = (map (pruneMinMax (n-1)) kinder)
     maxi       = maximum kidValues
@@ -256,9 +256,9 @@ data MMABTree = MMAB [(Move, MMABTree)]
 fanGameTree :: GameState -> FanGameTree
 fanGameTree state = case (turnFinder state) of
   GameOver _ -> ValNode state []
-  Turn _     -> ValNode state succ
+  Turn _     -> ValNode state succr
     where
-      succ   = map (fmap fanGameTree) states
+      succr   = map (fmap fanGameTree) states
       states = moveToState (legalMoves state) state
 
 -- helper that just grabs the turn from a state for the case statement
