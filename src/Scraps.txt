@@ -1,0 +1,30 @@
+
+
+-- | ==================================================== | --
+-- | =============== Code Scraps           ============== | --
+-- | ==================================================== | --
+
+data AlphaBetaTree = Pnt GameState Val Alpha Beta [AlphaBetaTree]
+
+
+pruneAB :: Depth -> GameTree -> AlphaBetaTree
+pruneAB 0 (GTree x _)      = Pnt x (heuristicRefined x) 0 0 []
+pruneAB n (GTree x kinder) = case x of
+   State (Turn Player1) _ _ _ _ -> Pnt x maxi 0 0 children
+   State (Turn Player2) _ _ _ _ -> Pnt x mini 0 0 children
+   State (GameOver _) _ _ _ _   -> Pnt x (heuristicRefined x) 0 0 []
+  where
+    children  = (map (pruneAB (n-1)) kinder)
+    maxi       = maximum kidValues
+    mini       = minimum kidValues
+    kidValues = map getABVal children
+
+getABVal :: AlphaBetaTree -> Val
+getABVal (Pnt _ val _ _ _) = val
+
+
+-- Cuts the tree at off at an integer depth adding in leaf nodes
+pruneDepth :: Depth -> GameTree -> GameTree
+pruneDepth 0 (GTree x _)         = GTree x []
+pruneDepth _ (GTree x [])        = GTree x []
+pruneDepth n (GTree x children)  = GTree x (map (pruneDepth (n-1)) children)

@@ -22,10 +22,13 @@ data AIFunc
 -- his or her attention to marking.
 
 ais :: [(String, AIFunc)]
-ais = [("default", WithLookahead (miniMaxOne COMP1100)),
+ais = [
+      ("AB1", WithLookahead (alphaBetaOne COMP1100)),
+      ("default", WithLookahead (miniMaxOne COMP1100)),
+      ("MM2", WithLookahead (miniMaxTwo COMP1100)),
       ("greedy", NoLookahead (greedy COMP1100)),
-      ("contented", NoLookahead (firstCaptureMove COMP1100)),
-      ("provided", NoLookahead (firstLegalMove COMP1100))
+      ("content", NoLookahead (firstCaptureMove COMP1100)),
+      ("FLM", NoLookahead (firstLegalMove COMP1100))
       ]
 
 
@@ -137,7 +140,7 @@ greedy course state = case state of
 -- | ================ Minimax            ================ | --
 -- | ==================================================== | --
 {-
-Needs to go down tree until case depth = n-1
+Needs to go down tree until case of moves depth = n-1
 make the leaf nodes Leaf (result state) (move to get there) (heuristic value)
 Find where its maxed of minned
 -}
@@ -223,6 +226,31 @@ heuristicVal state = subtracti (countPieces state)
   where
     subtracti (p1,p2) = p1-p2
 
+
+
+
+-- | ==================================================== | --
+-- | ================ Minimax diff heuristic ================ | --
+-- | ==================================================== | --
+{-Uses a slightly modified heuristic-}
+
+
+miniMaxTwo :: Course -> GameState -> Int -> Move
+miniMaxTwo COMP1100 state depth = getMove (pruneMinMaxTwo depth (gameTree state))
+miniMaxTwo COMP1130 _ _         = error "Not in COMP1130"
+
+pruneMinMaxTwo :: Depth -> GameTree -> EvalTree
+pruneMinMaxTwo 0 (GTree x _)      = Node x (heuristicRefined x) []
+pruneMinMaxTwo n (GTree x kinder) = case x of
+   State (Turn Player1) _ _ _ _ -> Node x maxi children
+   State (Turn Player2) _ _ _ _ -> Node x mini children
+   State (GameOver _) _ _ _ _   -> Node x (heuristicRefined x) []
+  where
+    children  = (map (pruneMinMaxTwo (n-1)) kinder)
+    maxi       = maximum kidValues
+    mini       = minimum kidValues
+    kidValues = map getVal children
+
 heuristicRefined :: GameState -> Val
 heuristicRefined state = case count of
   (0,_) -> -1000
@@ -231,6 +259,8 @@ heuristicRefined state = case count of
   where
     count             = countPieces state
     subtracti (p1,p2) = p1-p2
+
+
 
 
 -- | ==================================================== | --
@@ -251,6 +281,20 @@ type FanGameTree = NodeValTree Move GameState
 data MMABTree = MMAB [(Move, MMABTree)]
                 | Terminus Val
 
+alphaBetaOne :: Course -> GameState -> Int -> Move
+alphaBetaOne COMP1100 state depth = gMove (getMAB state depth)
+alphaBetaOne COMP1130 _ _         = error "Not in COMP1130"
+
+getMAB :: GameState -> Int -> (Val, Maybe Move)
+getMAB state d = case state of 
+   State (Turn Player1) _ _ _ _ -> maximize (genMMABTree d (fanGameTree state))
+   State (Turn Player2) _ _ _ _ -> minimize (genMMABTree d (fanGameTree state))
+   State (GameOver _) _ _ _ _   -> error "given a gameover"
+
+gMove :: (Val, Maybe Move) -> Move
+gMove (_, Just c)  = c
+gMove (_, Nothing) = error "no move - failure of gMove"
+
 
 -- |// Compute full tree \\| --
 fanGameTree :: GameState -> FanGameTree
@@ -259,7 +303,7 @@ fanGameTree state = case (turnFinder state) of
   Turn _     -> ValNode state succr
     where
       succr   = map (fmap fanGameTree) states
-      states = moveToState (legalMoves state) state
+      states = moveListToS (legalMoves state) state
 
 -- helper that just grabs the turn from a state for the case statement
 turnFinder :: GameState -> Turn
@@ -267,46 +311,80 @@ turnFinder (State t _ _ _ _) = t
 
 -- recurses through a list of legalMoves and...
 -- ...then pairs it with the resulting gamestate
-moveToState :: [Move] -> GameState -> [(Move,GameState)]
-moveToState [] _       = []
-moveToState (x:xs) state = case (applyMove myC x state) of
-  Just s  -> (x,s):(moveToState xs state)
-  Nothing -> moveToState xs state
+moveListToS :: [Move] -> GameState -> [(Move,GameState)]
+moveListToS l state = case l of
+  [] -> []
+  x:xs -> case (applyMove myC x state) of
+    Just s  -> (x,s):(moveListToS xs state)
+    Nothing -> moveListToS xs state
 
--- |// Compute A/B/MM tree \\| --
-
-
-
-
-
-
-
--- | ==================================================== | --
--- | =============== Code Scraps           ============== | --
--- | ==================================================== | --
+-- |// Prune tree and attach values to leaves \\| --
+genMMABTree :: Depth -> FanGameTree -> MMABTree
+genMMABTree d tree = case (d, tree) of
+  (_,ValNode s [])  -> Terminus (heuristicVal s)
+  (0,ValNode s _)  -> Terminus (heuristicVal s)
+  (_,ValNode _ ys) -> MMAB (map (fmap (genMMABTree (d-1))) ys)
 
 
-data AlphaBetaTree = Pnt GameState Val Alpha Beta [AlphaBetaTree]
 
 
-pruneAB :: Depth -> GameTree -> AlphaBetaTree
-pruneAB 0 (GTree x _)      = Pnt x (heuristicRefined x) 0 0 []
-pruneAB n (GTree x kinder) = case x of
-   State (Turn Player1) _ _ _ _ -> Pnt x maxi 0 0 children
-   State (Turn Player2) _ _ _ _ -> Pnt x mini 0 0 children
-   State (GameOver _) _ _ _ _   -> Pnt x (heuristicRefined x) 0 0 []
-  where
-    children  = (map (pruneAB (n-1)) kinder)
-    maxi       = maximum kidValues
-    mini       = minimum kidValues
-    kidValues = map getABVal children
 
-getABVal :: AlphaBetaTree -> Val
-getABVal (Pnt _ val _ _ _) = val
+-- |// Initial bounds on the a/b values \\| --
+
+maxB :: Val
+maxB = 10000
+
+minB :: Val
+minB = -10000
 
 
--- Cuts the tree at off at an integer depth adding in leaf nodes
-pruneDepth :: Depth -> GameTree -> GameTree
-pruneDepth 0 (GTree x _)         = GTree x []
-pruneDepth _ (GTree x [])        = GTree x []
-pruneDepth n (GTree x children)  = GTree x (map (pruneDepth (n-1)) children)
+
+
+
+-- |// Higher order function for max and min \\| --
+
+-- Function called for player 1
+
+maximize :: MMABTree -> (Val, Maybe Move)
+maximize state = undefined --maxi minB maxB mmabTree Nothing
+
+maxiTree :: Val -> Val -> MMABTree -> Maybe (Val, Move) -> (Val, Maybe Move)
+maxiTree _ _ (Terminus val) _             = (val, Nothing)
+maxiTree _ _ (MMAB []) Nothing            = error "error in the function maxiTree"
+maxiTree _ _ (MMAB []) (Just (val, move)) = (val, Just move)
+maxiTree a b (MMAB ((move,children):ys)) acc =
+  if val > b
+  then (val, Just move)
+  else maxiTree newa b (MMAB ys) newAcc
+  where 
+    (val,_) = miniTree a b children Nothing
+    newa    = max a val
+    newAcc  = case acc of
+      Nothing -> Just (val,move)
+      Just (accVal,_) -> if val>accVal 
+                        then Just (val,move)
+                        else acc
+
+
+
+-- Function called for player 2
+
+minimize :: MMABTree -> (Val, Maybe Move)
+minimize state = undefined --mini minB maxB mmabTree Nothing
+
+miniTree :: Val -> Val -> MMABTree -> Maybe (Val, Move) -> (Val, Maybe Move)
+miniTree _ _ (Terminus val) _             = (val, Nothing)
+miniTree _ _ (MMAB []) Nothing            = error "error in the function mimiTree"
+miniTree _ _ (MMAB []) (Just (val, move)) = (val, Just move)
+miniTree a b (MMAB ((move,children):ys)) acc =
+  if val <=a
+  then (val, Just move)
+  else maxiTree a newb (MMAB ys) newAcc
+  where 
+    (val,_) = miniTree a b children Nothing
+    newb    = min b val
+    newAcc  = case acc of
+      Nothing -> Just (val,move)
+      Just (accVal,_) -> if val<accVal 
+                        then Just (val,move)
+                        else acc
