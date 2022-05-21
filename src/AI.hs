@@ -1,7 +1,7 @@
 {-|
 Module      : AI
 Description : AIs for Fanorona
-Copyright   : (c) 2022 ANU and Your Name Here
+Copyright   : (c) 2022 ANU and Jacob Bos
 License     : AllRightsReserved
 -}
 module AI where
@@ -237,7 +237,8 @@ heuristicVal state = subtracti (countPieces state)
 
 
 miniMaxTwo :: Course -> GameState -> Int -> Move
-miniMaxTwo COMP1100 state depth = getMove (pruneMinMaxTwo depth (gameTree state))
+miniMaxTwo COMP1100 state depth = 
+  getMove (pruneMinMaxTwo depth (gameTree state))
 miniMaxTwo COMP1130 _ _         = error "Not in COMP1130"
 
 pruneMinMaxTwo :: Depth -> GameTree -> EvalTree
@@ -350,9 +351,9 @@ alphaBetaTwo COMP1130 _ _         = error "Not in COMP1130"
 
 getMAB :: GameState -> Int -> (Val, Maybe Move)
 getMAB state d = case state of 
-   State (Turn Player1) _ _ _ _ -> minimize' (genMMABTree d (fanGameTree state))
-   State (Turn Player2) _ _ _ _ -> maximize' (genMMABTree d (fanGameTree state))
-   State (GameOver _) _ _ _ _   -> error "given a gameover"
+  State (Turn Player1) _ _ _ _ -> maximize' (genMMABTree d (fanGameTree state))
+  State (Turn Player2) _ _ _ _ -> minimize' (genMMABTree d (fanGameTree state))
+  State (GameOver _) _ _ _ _   -> error "given a gameover"
 
 gMove :: (Val, Maybe Move) -> Move
 gMove (_, Just c)  = c
@@ -397,9 +398,10 @@ getPlayer (State (Turn Player2) _ _ _ _) = Player2
 getPlayer (State (GameOver _) _ _ _ _)   = error "gameover fed to getPlayer"
 
 
-minOrMax :: Player -> (Val -> Val -> MMABTree -> Maybe (Val, Move) -> (Val, Maybe Move))
-minOrMax Player1 = miniTree
-minOrMax Player2 = maxiTree
+minOrMax :: Player -> 
+  (Val -> Val -> MMABTree -> Maybe (Val, Move) -> (Val, Maybe Move))
+minOrMax Player1 = maxiTree
+minOrMax Player2 = miniTree
 
 
 -- |// Higher order function for max and min \\| --
@@ -411,10 +413,10 @@ maximize' tree = maxiTree minB maxB tree Nothing
 
 maxiTree :: Val -> Val -> MMABTree -> Maybe (Val, Move) -> (Val, Maybe Move)
 --gets value at terminus
-maxiTree _ _ (Terminus val) _             = (val, Nothing)
+maxiTree _ _ (Terminus val) _    = (val, Nothing)
 
 --error in tree pruning
-maxiTree _ _ (MMAB _ []) Nothing            = error "error in the function maxiTree"
+maxiTree _ _ (MMAB _ []) Nothing = error "error in the function maxiTree"
 
 --base case of recursion through a 
 maxiTree _ _ (MMAB _ []) (Just (val, move)) = (val, Just move)
@@ -443,10 +445,10 @@ minimize' tree = miniTree minB maxB tree Nothing
 
 miniTree :: Val -> Val -> MMABTree -> Maybe (Val, Move) -> (Val, Maybe Move)
 --gets value at terminus
-miniTree _ _ (Terminus val) _             = (val, Nothing)
+miniTree _ _ (Terminus val) _    = (val, Nothing)
 
 --error in tree pruning
-miniTree _ _ (MMAB _ []) Nothing            = error "error in the function maxiTree"
+miniTree _ _ (MMAB _ []) Nothing    = error "error in the function maxiTree"
 
 --base case of recursion through a 
 miniTree _ _ (MMAB _ []) (Just (val, move)) = (val, Just move)
@@ -455,7 +457,7 @@ miniTree _ _ (MMAB _ []) (Just (val, move)) = (val, Just move)
 miniTree a b (MMAB player ((move,children):ys)) acc =
   if val <=a
   then (val, Just move)
-  else maxiTree a newb (MMAB player ys) newAcc
+  else miniTree a newb (MMAB player ys) newAcc
   where 
     (val,_) = (minOrMax player) a b children Nothing
     newb    = min b val
