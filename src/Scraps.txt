@@ -158,3 +158,142 @@ miniTree a b (MMAB ((move,children):ys)) acc =
                         else acc
 
 
+-- | ==================================================== | --
+-- | =========== Minimax w/ alpha beta failed  ========== | --
+-- | ==================================================== | --
+{- A bad alpha/beta pruner that does not work for chained moves
+   because it is based of an algorithmic structure for an alternating game-}
+
+
+-- A polymorphic tree structure
+data NodeValTree e v = ValNode v [(e,NodeValTree e v)]
+
+-- Tree with values only in leaves which keeps track of 
+-- the moves as well as 
+type FanGameTree = NodeValTree Move GameState
+
+-- The minimax tree
+data MMABTree = MMAB Player [(Move, MMABTree)]
+                | Terminus Val
+
+alphaBetaTwo :: Course -> GameState -> Int -> Move
+alphaBetaTwo COMP1100 state depth = gMove (getMAB state depth)
+alphaBetaTwo COMP1130 _ _         = error "Not in COMP1130"
+
+getMAB :: GameState -> Int -> (Val, Maybe Move)
+getMAB state d = case state of 
+  State (Turn Player1) _ _ _ _ -> maximize' (genMMABTree d (fanGameTree state))
+  State (Turn Player2) _ _ _ _ -> minimize' (genMMABTree d (fanGameTree state))
+  State (GameOver _) _ _ _ _   -> error "given a gameover"
+
+gMove :: (Val, Maybe Move) -> Move
+gMove (_, Just c)  = c
+gMove (_, Nothing) = error "no move - failure of gMove"
+
+
+-- |// Compute full tree \\| --
+fanGameTree :: GameState -> FanGameTree
+fanGameTree state = case (turnFinder state) of
+  GameOver _ -> ValNode state []
+  Turn _     -> ValNode state succr
+    where
+      succr   = map (fmap fanGameTree) states
+      states = moveListToS (legalMoves state) state
+
+-- helper that just grabs the turn from a state for the case statement
+turnFinder :: GameState -> Turn
+turnFinder (State t _ _ _ _) = t
+
+-- recurses through a list of legalMoves and...
+-- ...then pairs it with the resulting gamestate
+moveListToS :: [Move] -> GameState -> [(Move,GameState)]
+moveListToS l state = case l of
+  [] -> []
+  x:xs -> case (applyMove myC x state) of
+    Just s  -> (x,s):(moveListToS xs state)
+    Nothing -> moveListToS xs state
+
+-- |// Prune tree and attach values to leaves \\| --
+genMMABTree :: Depth -> FanGameTree -> MMABTree
+genMMABTree d tree = case (d, tree) of
+  (_,ValNode s [])  -> Terminus (heuristicVal s)
+  (0,ValNode s _)  -> Terminus (heuristicVal s)
+  (_,ValNode s ys) -> MMAB (getPlayer s) (map (fmap (genMMABTree (d-1))) ys)
+
+
+
+
+getPlayer :: GameState -> Player
+getPlayer (State (Turn Player1) _ _ _ _) = Player1
+getPlayer (State (Turn Player2) _ _ _ _) = Player2
+getPlayer (State (GameOver _) _ _ _ _)   = error "gameover fed to getPlayer"
+
+
+minOrMax :: Player -> 
+  (Val -> Val -> MMABTree -> Maybe (Val, Move) -> (Val, Maybe Move))
+minOrMax Player1 = maxiTree
+minOrMax Player2 = miniTree
+
+
+-- |// Higher order function for max and min \\| --
+
+-- Function called for player 1
+
+maximize' :: MMABTree -> (Val, Maybe Move)
+maximize' tree = maxiTree minB maxB tree Nothing
+
+maxiTree :: Val -> Val -> MMABTree -> Maybe (Val, Move) -> (Val, Maybe Move)
+--gets value at terminus
+maxiTree _ _ (Terminus val) _    = (val, Nothing)
+
+--error in tree pruning
+maxiTree _ _ (MMAB _ []) Nothing = error "error in the function maxiTree"
+
+--base case of recursion through a 
+maxiTree _ _ (MMAB _ []) (Just (val, move)) = (val, Just move)
+
+--recurses through list of children
+maxiTree a b (MMAB player ((move,children):ys)) acc =
+  if val > b
+  then (val, Just move)
+  else maxiTree newa b (MMAB player ys) newAcc
+  where 
+    (val,_) = (minOrMax player) a b children Nothing
+    newa    = max a val
+    newAcc  = case acc of
+      Nothing -> Just (val,move)
+      Just (accVal,_) -> if val>accVal 
+                        then Just (val,move)
+                        else acc
+
+
+
+-- Function called for player 2
+
+minimize' :: MMABTree -> (Val, Maybe Move)
+minimize' tree = miniTree minB maxB tree Nothing
+
+
+miniTree :: Val -> Val -> MMABTree -> Maybe (Val, Move) -> (Val, Maybe Move)
+--gets value at terminus
+miniTree _ _ (Terminus val) _    = (val, Nothing)
+
+--error in tree pruning
+miniTree _ _ (MMAB _ []) Nothing    = error "error in the function maxiTree"
+
+--base case of recursion through a 
+miniTree _ _ (MMAB _ []) (Just (val, move)) = (val, Just move)
+
+--recurses through children applying a/b rules
+miniTree a b (MMAB player ((move,children):ys)) acc =
+  if val <=a
+  then (val, Just move)
+  else miniTree a newb (MMAB player ys) newAcc
+  where 
+    (val,_) = (minOrMax player) a b children Nothing
+    newb    = min b val
+    newAcc  = case acc of
+      Nothing -> Just (val,move)
+      Just (accVal,_) -> if val<accVal 
+                        then Just (val,move)
+                        else acc

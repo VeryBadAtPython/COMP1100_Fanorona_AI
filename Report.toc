@@ -1,14 +1,14 @@
 \contentsline {section}{\numberline {1}Introduction}{1}{}%
 \contentsline {section}{\numberline {2}Documentation}{1}{}%
 \contentsline {subsection}{\numberline {2.1}Design Documentation and Technical Decisions}{1}{}%
-\contentsline {paragraph}{Greedy AI}{1}{}%
+\contentsline {paragraph}{The Greedy AI}{1}{}%
 \contentsline {paragraph}{Minimax}{1}{}%
-\contentsline {paragraph}{Alpha-Beta pruner}{1}{}%
-\contentsline {subsection}{\numberline {2.2}Program Design / Structure}{2}{}%
-\contentsline {subsection}{\numberline {2.3}Assumptions}{2}{}%
-\contentsline {section}{\numberline {3}Testing}{2}{}%
-\contentsline {paragraph}{Unit tests}{2}{}%
-\contentsline {paragraph}{Performance tests}{2}{}%
-\contentsline {section}{\numberline {4}Reflection}{2}{}%
-\contentsline {subsection}{\numberline {4.1}Design Choices}{2}{}%
-\contentsline {subsection}{\numberline {4.2}Reflection}{2}{}%
+\contentsline {paragraph}{The other AI's}{2}{}%
+\contentsline {subsection}{\numberline {2.2}Program Design / Structure}{3}{}%
+\contentsline {subsection}{\numberline {2.3}Assumptions}{3}{}%
+\contentsline {section}{\numberline {3}Testing}{3}{}%
+\contentsline {paragraph}{Unit tests}{3}{}%
+\contentsline {paragraph}{Performance tests}{3}{}%
+\contentsline {section}{\numberline {4}Reflection}{3}{}%
+\contentsline {subsection}{\numberline {4.1}Design Choices}{3}{}%
+\contentsline {subsection}{\numberline {4.2}Reflection}{3}{}%
