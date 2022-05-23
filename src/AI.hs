@@ -26,8 +26,8 @@ ais = [
       ("AB1", WithLookahead (alphaBetaOne COMP1100)),
       ("default", WithLookahead (miniMaxOne COMP1100)),
       ("MM2", WithLookahead (miniMaxTwo COMP1100)),
-      ("greedy", NoLookahead (greedy COMP1100)),
-      ("content", NoLookahead (firstCaptureMove COMP1100)),
+      ("GRDY", NoLookahead (greedy COMP1100)),
+      ("FCM", NoLookahead (firstCaptureMove COMP1100)),
       ("FLM", NoLookahead (firstLegalMove COMP1100))
       ]
 
@@ -286,7 +286,7 @@ minB = -10000
 
 -- Cuts the tree at off at an integer depth adding in leaf nodes
 -- then propagating values up
--- Struggling with the logic of a/b pruning
+-- Struggling with the logic of a/b pruning7
 
 pruneAB :: Depth -> GameTree -> EvalTree
 pruneAB depth tree = pruner depth tree minB maxB

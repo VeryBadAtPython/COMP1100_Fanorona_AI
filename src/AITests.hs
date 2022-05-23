@@ -13,7 +13,8 @@ import           Testing
 aiTests :: Test
 aiTests = TestGroup "AI"
   (
-  diffPiecesTests
+  pairPiecesTest
+  ++diffPiecesTests
   ++purgeTests
   ++findDepthTests
   ++getValTest
