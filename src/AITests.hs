@@ -12,24 +12,27 @@ import           Testing
 
 aiTests :: Test
 aiTests = TestGroup "AI"
-  (
-  pairPiecesTest
-  ++diffPiecesTests
-  ++purgeTests
-  ++findDepthTests
-  ++getValTest
-  ++heuristicValTest
-  )
+  [
+  pairPiecesTest,
+  diffPiecesTests,
+  purgeTests,
+  findDepthTests,
+  getValTest,
+  heuristicValTest
+  ]
+
+
+
 
 -- | ==================================================== | --
 -- | ================ Greedy tests       ================ | --
 -- | ==================================================== | --
 
--- Test of pairPieces (checks length)
-pairPiecesTest :: [Test]
+-- | Test of pairPieces (checks length)
+pairPiecesTest :: Test
 pairPiecesTest =
-  [
-    Test "myC"
+  TestGroup "pairPieces" [
+    Test "lengths equal of pairPieces and legal moves on initial state"
       (assertEqual (length (pairPieces moves kids)) (length moves))
   ]
   where
@@ -37,25 +40,33 @@ pairPiecesTest =
     kids  = initialState (2,4)
 
 
--- Test of diffPieces
-diffPiecesTests :: [Test]
+-- | Test of diffPieces
+diffPiecesTests :: Test
+-- (1) initialState -> Just 0
+-- (2) Nothing -> Nothing
 diffPiecesTests =
-  [
-    Test "diffPieces initial State"
+  TestGroup "diffPieces" [
+    Test "initial State"
       (assertEqual (diffPieces (Just (initialState (2,4)))) (Just 0 :: Maybe Int)),
-    Test "diffPieces nothing"
+    Test "nothing"
       (assertEqual (diffPieces Nothing) (Nothing :: Maybe Int))
   ]
+
+
 
 
 -- | ==================================================== | --
 -- | ================ Minimax tests      ================ | --
 -- | ==================================================== | --
 
--- Comprehensive test list of purge
-purgeTests :: [Test]
+-- | Comprehensive test list of purge
+purgeTests :: Test
+-- (1) Empty list
+-- (2) All nothings
+-- (3) All justs
+-- (4) Mix of nothings and justs
 purgeTests =
-  [
+  TestGroup "purge" [
     Test "Empty purge list"
       (assertEqual (purge [] ) ( [] :: [Int] )),
     Test "All Nothings in purge list"
@@ -69,10 +80,12 @@ purgeTests =
 
 
 
--- Comprehensive test list of findDepth
-findDepthTests :: [Test]
+-- | Comprehensive test list of findDepth
+findDepthTests :: Test
+-- (1) string with two of desired element
+-- (2) list with one of desired integer
 findDepthTests =
-  [
+  TestGroup "findDepth" [
     Test "findDepth test 1"
       (assertEqual (findDepth 'c' "schoonerc") ( 1 :: Int )),
     Test "findDepth test 2"
@@ -82,21 +95,18 @@ findDepthTests =
 
 
 
--- Comprehensive test list of getVal
-getValTest :: [Test]
-getValTest =
-  [
-    Test "getVal"
+-- | Comprehensive test list of getVal
+getValTest :: Test
+-- Only one possible case
+getValTest = Test "getVal"
       (assertEqual (getVal (Node (initialState (2,4)) 3 [] )) ( 3 :: Val ))
-  ]
+  
 
 
 
 
--- Test of heuristicVal
-heuristicValTest :: [Test]
-heuristicValTest =
-  [
-    Test "heuristicVal"
+-- | Test of heuristicVal
+heuristicValTest :: Test
+heuristicValTest = Test "heuristicVal"
       (assertEqual (heuristicVal (initialState (2,4))) ( 0 :: Val ))
-  ]
+  
