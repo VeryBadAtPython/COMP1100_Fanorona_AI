@@ -24,8 +24,8 @@ data AIFunc
 ais :: [(String, AIFunc)]
 ais = [
       ("AB1", WithLookahead (alphaBetaOne COMP1100)),
-      ("default", WithLookahead (miniMaxOne COMP1100)),
-      ("MM2", WithLookahead (miniMaxTwo COMP1100)),
+      ("MM1", WithLookahead (miniMaxOne COMP1100)),
+      ("default", WithLookahead (miniMaxTwo COMP1100)),
       ("GRDY", NoLookahead (greedy COMP1100)),
       ("FCM", NoLookahead (firstCaptureMove COMP1100)),
       ("FLM", NoLookahead (firstLegalMove COMP1100))
