@@ -23,7 +23,6 @@ data AIFunc
 
 ais :: [(String, AIFunc)]
 ais = [
-      ("AB1", WithLookahead (alphaBetaOne COMP1100)),
       ("MM1", WithLookahead (miniMaxOne COMP1100)),
       ("default", WithLookahead (miniMaxTwo COMP1100)),
       ("GRDY", NoLookahead (greedy COMP1100)),
@@ -229,7 +228,7 @@ heuristicVal state = subtracti (countPieces state)
 -- | ================ Minimax diff heuristic ================ | --
 -- | ==================================================== | --
 {-Uses a slightly modified heuristic to above
-  was not found to be beneficial-}
+  was found to be beneficial-}
 
 
 miniMaxTwo :: Course -> GameState -> Int -> Move
@@ -259,70 +258,6 @@ heuristicRefined state = case count of
     subtracti (p1,p2) = p1-p2
 
 
-
-
--- | ==================================================== | --
--- | ============== Minimax w/alpha-beta ================ | --
--- | ==================================================== | --
-{-An attempt at modifying the prior minimax algo 
-  to then use alpha/beta pruning-}
-
--- New type for the pruned tree to store alpha and beta values                
-data ABTree = ABNode Val [EvalTree]
-
-alphaBetaOne :: Course -> GameState -> Int -> Move
-alphaBetaOne COMP1100 state depth = getMove (pruneAB depth (gameTree state))
-alphaBetaOne COMP1130 _ _         = error "Not in COMP1130"
-
-
-type Alpha = Int
-type Beta  = Int
-
--- |// Initial bounds on the a/b values \\| --
-maxB :: Val
-maxB = 10000
-minB :: Val
-minB = -10000
-
--- Cuts the tree at off at an integer depth adding in leaf nodes
--- then propagating values up
--- Struggling with the logic of a/b pruning7
-
-pruneAB :: Depth -> GameTree -> EvalTree
-pruneAB depth tree = pruner depth tree minB maxB
-
-pruner :: Int -> GameTree -> Val -> Val -> EvalTree
-pruner = undefined
-
-
- {-
-getMoveAB :: ABTree -> Move
-getMoveAB (ABNode state _ val _ children) = nthElem 
-  where
-    nthElem  = moveList !! nth
-    moveList = legalMoves state
-    nth      = findDepth val (map getVal children)
-getMoveAB (ABLeaf _ _) = error "tree head is a leaf"
--}
-
-{-
-pruneAB 0 (GTree x _)      = ABLeaf x val
-  where val = (heuristicVal x)
-
-pruneAB 0 (GTree x _)      = ABLeaf x ABLeaf x val
-  where val = (heuristicVal x)
-
-pruneAB n (GTree x kinder) = case x of
-   State (Turn Player1) _ _ _ _ -> ABNode x maxi maxi maxB children
-   State (Turn Player2) _ _ _ _ -> ABNode x val mini val children
-   State (GameOver _) _ _ _ _   -> ABNode x val val val []
-  where
-    children  = (map (pruneMinMax (n-1)) kinder)
-    maxi       = maximum kidValues
-    mini       = minimum kidValues
-    kidValues = map getVal children
-    val = (heuristicVal x)
-  -}
 
 
 
