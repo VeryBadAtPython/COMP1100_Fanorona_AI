@@ -60,20 +60,24 @@ The program detailed herein is an implementation of a few AI's for solving the g
 
 \subparagraph*{}To then retrieve the best move we note that the best move is at the same depth in the \verb|legalMoves| list as best value stored in the head node is in the list of child \verb|evalTree| nodes. This is because the list of children nodes is produced by a mapping on the \verb|legalMoves| list. Consequently to find the best move we extract the value from the head of the output of \verb|pruneMinMax| using \verb|getVal| and then find it's depth recursively in the list provided by mapping \verb|getVal| to the child nodes at depth 1 using \verb|findDepth|. Consequently the function \verb|getMove| uses the (!!) operator to extract the best move at its expected depth in the \verb|legalMoves| list.
 
-\paragraph*{The second Minimax} Is identical to the first except that the heuristic function assigns win or loss gamestates with heuristic values far more extreme their typical values. This was an experiment to see wether this would allow the AI to prioritize winning moves during the endgame.
-
-\paragraph{The Alpha-Beta Minimax} attempt tried to use the same initial structure \verb|GameTree| and either \verb|evalTree| or another tree structure
-
+\paragraph*{The second Minimax} Is identical to the first except that the heuristic function assigns win or loss gamestates with heuristic values far more extreme their typical values. This was an experiment to see wether this would allow the AI to prioritize winning moves during the endgame and it improves results by a little bit.
 
 \newpage
 \subsection{Program Design / Structure}
+The function dependencies of the greedy AI and both MiniMax AI's is featured below:
+\begin{center}
+  \includegraphics[width=0.85\textwidth]{functDep.png}
+\end{center}
 
+\paragraph{The Greedy AI's} structure somewhat convoluted and could be made simpler. As it stands it does a lot of unnecessary work with Maybe types which could be eliminated with the strategies used in the minimax AIs however was developed first. As a result of the extra case statements required to work with the maybe types it was necessary to break the AI into a number of helpers to improve style and readability.
+
+\paragraph{The MiniMax AI's} share the same structure and the majority of their functions. Both are called by a top end function that inputs the initial states and calls a function that gets the move based on the result of the pruner function's evaluation tree. It was chosen to move \verb|getVal| to a helper function to reduce the things in the \verb|where| clause of the pruner to just static evaluations and not called functions.
 
  \subsection{Assumptions}%Describe assumptions you have made about how a user might use the program and how this has influenced your design decisions.
-
+The primary assumption made is that the ordering of the \verb|legalMoves| list is the same as the ordering of their corresponding values in the \verb|depth=1| level of the \verb|EvalTree|. This assumption was made because despite \verb|purge| removing all nothings from list of subsequent states there would be no nothings because they only result from an illegal move being fed to \verb|applyMove| which is impossible when the \verb|legalMoves| list is used. Thus the values in the first child nodes are essentially the result of repeated mappings onto the \verb|legalMoves| list and so order is preserved. A second assumption made was the the \verb|legalMoves| list would never be empty because this would be prohibited by the game ending at that point. Consequently it was acceptable for \verb|findDepth| to return an error for an empty list.
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+\newpage
 \section{Testing}%How did I test the program focus on methodology and testing groups
 %How did you test individual functions?
 %Be specific about this - the tutors know that you have tested your program, but they want to know how.
@@ -95,17 +99,16 @@ The program detailed herein is an implementation of a few AI's for solving the g
 
 
 
-
+\newpage
 \section{Reflection}
 %Discuss the reasoning behind your decisions, rather than what the decisions were. You can reflect on not only the decisions you made, but the process through which you developed the final program:
-   %What would you have done differently if you were to do it again
+  %What would you have done differently if you were to do it again
     %What changes to the design and structure you would make if you wrote the program again from scratch?
-    \subsection{Design Choices}
+  \subsection{Design Choices}
+  For the greedy AI and the first minimax it was decided to use just the difference of pieces as the heuristic function as it was easily implemented by using the \verb|countPieces| function provided in \verb|Fanorona.hs|. This was done to allow myself greater time to design and understand the actual algorithms. However the second Minimax used the update describes in an attempt to prioritize winning moves in endgame. It was chosen that the greedy AI should pair moves with their associated value to allow for an accumulator recursion to find the move with the best outcome. In contrast the minimax AI's did not store moves in the structure relying on the discussed assumption about list lengths. This was done in order to simplify the structures and functions as much as possible in an attempt to improve style and speed for example by being able to use pre-optimized functions like \verb|maximize| and avoid convoluted datatype that require using functions like \verb|fmap|. The minimax pruners were designed to make as good use of laziness as possible. This allowed a node to be assigned the minimum of maximum value of its children before the children were evaluated. This meant that it was only necessary to navigate down the tree.
 
-
-   \subsection{Reflection}
-
-
+  \subsection{Reflection}
+  Upon reflection I would have designed my functions to take a heuristic function as an input so as to not need to rewrite the pruner function but rather to take a heuristic function as an argument. Further I would have removed the states from the nodes of the \verb|EvalTree| to simplify the structure even more.
 
 
 

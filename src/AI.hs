@@ -22,7 +22,7 @@ data AIFunc
 -- his or her attention to marking.
 
 ais :: [(String, AIFunc)]
-ais = [
+ais = [ 
       ("MM1", WithLookahead (miniMaxOne COMP1100)),
       ("default", WithLookahead (miniMaxTwo COMP1100)),
       ("GRDY", NoLookahead (greedy COMP1100)),
@@ -115,7 +115,7 @@ greedyHelp evaluator moves acc = case (moves,acc) of
   _                 -> acc
 
 
--- The final greedy heuristic
+-- The greedy AI
 greedy :: Course -> GameState -> Move
 greedy course state = case state of
   State (Turn Player1) _ _ _ _ ->
@@ -202,9 +202,9 @@ purge list = case list of
 pruneMinMax :: Depth -> GameTree -> EvalTree
 pruneMinMax 0 (GTree x _)      = Node x (heuristicVal x) []
 pruneMinMax n (GTree x kinder) = case x of
-   State (Turn Player1) _ _ _ _ -> Node x maxi children
-   State (Turn Player2) _ _ _ _ -> Node x mini children
-   State (GameOver _) _ _ _ _   -> Node x (heuristicVal x) []
+  State (Turn Player1) _ _ _ _ -> Node x maxi children
+  State (Turn Player2) _ _ _ _ -> Node x mini children
+  State (GameOver _) _ _ _ _   -> Node x (heuristicVal x) []
   where
     children  = (map (pruneMinMax (n-1)) kinder)
     maxi       = maximum kidValues
