@@ -28,7 +28,7 @@ aiTests = TestGroup "AI"
 -- | ================ Greedy tests       ================ | --
 -- | ==================================================== | --
 
--- | Test of pairPieces (checks length)
+-- | Test of pairPieces (checks lengths)
 pairPiecesTest :: Test
 pairPiecesTest =
   TestGroup "pairPieces" [
@@ -40,10 +40,10 @@ pairPiecesTest =
     kids  = initialState (2,4)
 
 
--- | Test of diffPieces
-diffPiecesTests :: Test
+-- |\\ ==== diffPieces Tests ==== //| --
 -- (1) initialState -> Just 0
 -- (2) Nothing -> Nothing
+diffPiecesTests :: Test
 diffPiecesTests =
   TestGroup "diffPieces" [
     Test "initial State"
@@ -59,12 +59,14 @@ diffPiecesTests =
 -- | ================ Minimax tests      ================ | --
 -- | ==================================================== | --
 
+
+-- |\\ ========== purge Tests =========== //| --
 -- | Comprehensive test list of purge
-purgeTests :: Test
 -- (1) Empty list
 -- (2) All nothings
 -- (3) All justs
 -- (4) Mix of nothings and justs
+purgeTests :: Test
 purgeTests =
   TestGroup "purge" [
     Test "Empty purge list"
@@ -80,10 +82,11 @@ purgeTests =
 
 
 
+-- |\\ ========== findDepth Tests ========== //| --
 -- | Comprehensive test list of findDepth
-findDepthTests :: Test
 -- (1) string with two of desired element
 -- (2) list with one of desired integer
+findDepthTests :: Test
 findDepthTests =
   TestGroup "findDepth" [
     Test "findDepth test 1"
@@ -95,17 +98,17 @@ findDepthTests =
 
 
 
+-- |\\ ============ getVal Tests ============ //| --
 -- | Comprehensive test list of getVal
-getValTest :: Test
 -- Only one possible case
+getValTest :: Test
 getValTest = Test "getVal"
       (assertEqual (getVal (Node (initialState (2,4)) 3 [] )) ( 3 :: Val ))
   
 
 
 
-
--- | Test of heuristicVal
+-- |\\ ========== heuristicVal Tests ========== //| --
 heuristicValTest :: Test
 heuristicValTest = Test "heuristicVal"
       (assertEqual (heuristicVal (initialState (2,4))) ( 0 :: Val ))
