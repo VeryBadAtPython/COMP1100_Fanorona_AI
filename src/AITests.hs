@@ -28,6 +28,8 @@ aiTests = TestGroup "AI"
 -- | ================ Greedy tests       ================ | --
 -- | ==================================================== | --
 
+
+-- |\\ ========== pairPieces Test ========== //| --
 -- | Test of pairPieces (checks lengths)
 pairPiecesTest :: Test
 pairPiecesTest =
@@ -47,7 +49,8 @@ diffPiecesTests :: Test
 diffPiecesTests =
   TestGroup "diffPieces" [
     Test "initial State"
-      (assertEqual (diffPieces (Just (initialState (2,4)))) (Just 0 :: Maybe Int)),
+      (assertEqual (diffPieces (Just (initialState (2,4))))
+        (Just 0 :: Maybe Int)),
     Test "nothing"
       (assertEqual (diffPieces Nothing) (Nothing :: Maybe Int))
   ]
