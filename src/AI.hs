@@ -76,10 +76,8 @@ firstCaptureMove course state = case applyMove course Pass state of
 -- | ==================================================== | --
 {-
   - Needs the list of legalMoves
-  - Perhaps traverse the list and pair each one with the difference in pieces
-    between players then picking the optimal one
-  - Need a function that applies each move to game state to then apply 
-    countPieces to.
+  - Traverses the list and pairs each one with the difference in pieces
+    between players it results in then picks the optimal one
 -}
 
 -- Shortcut to enter my course if needed
@@ -116,6 +114,7 @@ greedyHelp evaluator moves acc = case (moves,acc) of
 
 
 -- The greedy AI
+-- Uses an initial accumulator of the head of legalMoves and its value
 greedy :: Course -> GameState -> Move
 greedy course state = case state of
   State (Turn Player1) _ _ _ _ ->
@@ -136,12 +135,13 @@ greedy course state = case state of
 -- | ==================================================== | --
 {-
   - Takes a state and generates a GameTree of states
-    by recursion of legalMoves
+    by recursion using legalMoves
   - Then traverses the GameTree evaluating and pruning at a certain depth
     then the best possible value is propagated up the tree according
     to the minimax rules
   - Then takes the best value, now stored in the head node
-    and then work's out its depth in the legalMoves list, calling it
+    and then work's out its depth in the legalMoves list,
+    then gets move at that depth in legalMoves
 -}
 
 
@@ -157,12 +157,17 @@ data EvalTree = Node GameState Val [EvalTree]
 
 
 
--- Main function
+-- |\\ ============ AI Main Function ============ //| --
 miniMaxOne :: Course -> GameState -> Int -> Move
 miniMaxOne COMP1100 state depth = getMove (pruneMinMax depth (gameTree state))
 miniMaxOne COMP1130 _ _         = error "Not in COMP1130"
 
--- Gets the best move from an EvalTree
+
+
+-- |\\ ============== Move retriever ============== //| --
+-- Gets the best move based off the EvalTree
+-- Finds where elem in head node is in list of child nodes
+-- Gets corresponding move in legalMoves
 getMove :: EvalTree -> Move
 getMove (Node state val children) = nthElem 
   where
@@ -179,7 +184,12 @@ findDepth n vals = case vals of
     | x /= n    -> 1 + findDepth n xs
     | otherwise -> 0
 
+
+
+
+-- |\\ ============ GameTree Generator ============ //| --
 -- Generates the GameTree by recursing down from states with legalMoves
+-- Each node keeps track of the evolution in the states
 gameTree :: GameState -> GameTree
 gameTree state = GTree state (map gameTree children)
   where
@@ -197,6 +207,8 @@ purge list = case list of
 
 
 
+
+-- |\\ ============ Pruner / Minimax ============ //| --
 -- Cuts the tree at off at an integer depth adding in leaf nodes
 -- then propagates values up from the base according to miniMax
 pruneMinMax :: Depth -> GameTree -> EvalTree
@@ -211,10 +223,14 @@ pruneMinMax n (GTree x kinder) = case x of
     mini       = minimum kidValues
     kidValues = map getVal children
 
+-- Helper to get value in node
 getVal :: EvalTree -> Val
 getVal (Node _ val _) = val
 
 
+
+
+-- |\\ ================ Heuristic ================ //| --
 -- calculates the difference in pieces.
 heuristicVal :: GameState -> Val
 heuristicVal state = subtracti (countPieces state)
@@ -225,7 +241,7 @@ heuristicVal state = subtracti (countPieces state)
 
 
 -- | ==================================================== | --
--- | ================ Minimax diff heuristic ================ | --
+-- | ============== Minimax diff heuristic ============== | --
 -- | ==================================================== | --
 {-Uses a slightly modified heuristic to above
   was found to be beneficial-}
@@ -236,6 +252,7 @@ miniMaxTwo COMP1100 state depth =
   getMove (pruneMinMaxTwo depth (gameTree state))
 miniMaxTwo COMP1130 _ _         = error "Not in COMP1130"
 
+-- Same as pruneMinMax but with heuristicRefined
 pruneMinMaxTwo :: Depth -> GameTree -> EvalTree
 pruneMinMaxTwo 0 (GTree x _)      = Node x (heuristicRefined x) []
 pruneMinMaxTwo n (GTree x kinder) = case x of
@@ -248,6 +265,10 @@ pruneMinMaxTwo n (GTree x kinder) = case x of
     mini       = minimum kidValues
     kidValues = map getVal children
 
+-- |\\ New Heuristic //| --
+-- Returns the difference in pieces unless the one of players loses.
+-- If Player1 loses as they are maximizing player node is assigned -1000
+-- If Player2 loses as they are minimizing player node is assigned 1000
 heuristicRefined :: GameState -> Val
 heuristicRefined state = case count of
   (0,_) -> -1000
