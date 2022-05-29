@@ -33,10 +33,8 @@ aiTests = TestGroup "AI"
 -- | Test of pairPieces (checks lengths)
 pairPiecesTest :: Test
 pairPiecesTest =
-  TestGroup "pairPieces" [
-    Test "lengths equal of pairPieces and legal moves on initial state"
+  Test "lengths equal of pairPieces and legal moves on initial state"
       (assertEqual (length (pairPieces moves kids)) (length moves))
-  ]
   where
     moves = legalMoves kids
     kids  = initialState (2,4)
