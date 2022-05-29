@@ -33,7 +33,7 @@ ais = [
 
 
 -- | ==================================================== | --
--- | ================ First legal move   ================ | --
+-- | ================ First legal move  ================= | --
 -- | ==================================================== | --
 -- | A very simple AI, which passes whenever it can, and if not,
 -- picks the first move returned by the 'legalMoves' function.
