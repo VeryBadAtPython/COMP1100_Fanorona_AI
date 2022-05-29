@@ -23,8 +23,8 @@ data AIFunc
 
 ais :: [(String, AIFunc)]
 ais = [ 
-      ("MM1", WithLookahead (miniMaxOne COMP1100)),
       ("default", WithLookahead (miniMaxTwo COMP1100)),
+      ("MM1", WithLookahead (miniMaxOne COMP1100)),
       ("GRDY", NoLookahead (greedy COMP1100)),
       ("FCM", NoLookahead (firstCaptureMove COMP1100)),
       ("FLM", NoLookahead (firstLegalMove COMP1100))
@@ -46,6 +46,8 @@ firstLegalMove :: Course -> GameState -> Move
 firstLegalMove course state = case applyMove course Pass state of
   Nothing -> head (legalMoves state)
   _ -> Pass
+
+
 
 
 -- | ==================================================== | --
@@ -70,6 +72,9 @@ firstCaptureMove course state = case applyMove course Pass state of
     captureHead moves = case moves of
       x:_ -> Just x
       _    -> Nothing
+
+
+
 
 -- | ==================================================== | --
 -- | ================ Greedy             ================ | --

@@ -1,18 +1,13 @@
 \contentsline {section}{\numberline {1}Introduction}{1}{}%
 \contentsline {section}{\numberline {2}Documentation}{1}{}%
-\contentsline {subsection}{\numberline {2.1}Design Documentation and Technical Decisions}{1}{}%
 \contentsline {paragraph}{The Greedy AI}{1}{}%
 \contentsline {paragraph}{The first Minimax}{1}{}%
-\contentsline {subsection}{\numberline {2.2}Program Design / Structure}{3}{}%
-\contentsline {paragraph}{The Greedy AI's}{3}{}%
-\contentsline {paragraph}{Both MiniMax AI's}{3}{}%
-\contentsline {subsection}{\numberline {2.3}Assumptions}{4}{}%
+\contentsline {paragraph}{The Greedy AI}{3}{}%
+\contentsline {paragraph}{Both MiniMax AIs}{3}{}%
 \contentsline {section}{\numberline {3}Testing}{5}{}%
 \contentsline {paragraph}{Unit tests}{5}{}%
 \contentsline {subparagraph}{The Greedy AI}{5}{}%
 \contentsline {subparagraph}{The MiniMax AI}{5}{}%
 \contentsline {paragraph}{Performance tests}{5}{}%
 \contentsline {subparagraph}{The MiniMax AI's}{5}{}%
-\contentsline {section}{\numberline {4}Reflection}{7}{}%
-\contentsline {subsection}{\numberline {4.1}Design Choices}{7}{}%
-\contentsline {subsection}{\numberline {4.2}Reflection}{7}{}%
+\contentsline {section}{\numberline {4}Reflection}{6}{}%

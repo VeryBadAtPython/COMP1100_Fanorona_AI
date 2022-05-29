@@ -32,7 +32,7 @@ pruneDepth n (GTree x children)  = GTree x (map (pruneDepth (n-1)) children)
 
 
 -- | ==================================================== | --
--- | =============== Minimax w/ alpha beta ============== | --
+-- | ============= Minimax w/ alpha beta BAD ============ | --
 -- | ==================================================== | --
 
 type Alpha = Int
