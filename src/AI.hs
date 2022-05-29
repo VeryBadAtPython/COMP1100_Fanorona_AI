@@ -224,8 +224,8 @@ pruneMinMax n (GTree x kinder) = case x of
   State (GameOver _) _ _ _ _   -> Node x (heuristicVal x) []
   where
     children  = (map (pruneMinMax (n-1)) kinder)
-    maxi       = maximum kidValues
-    mini       = minimum kidValues
+    maxi      = maximum kidValues
+    mini      = minimum kidValues
     kidValues = map getVal children
 
 -- Helper to get value in node
