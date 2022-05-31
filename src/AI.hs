@@ -7,6 +7,7 @@ License     : AllRightsReserved
 module AI where
 
 import           Fanorona
+import           Data.Tuple
 
 -- | Type of AI functions you can choose to write.
 data AIFunc
@@ -238,9 +239,7 @@ getVal (Node _ val _) = val
 -- |\\ ================ Heuristic ================ //| --
 -- calculates the difference in pieces.
 heuristicVal :: GameState -> Val
-heuristicVal state = subtracti (countPieces state)
-  where
-    subtracti (p1,p2) = p1-p2
+heuristicVal state = uncurry (-) (countPieces state)
 
 
 
